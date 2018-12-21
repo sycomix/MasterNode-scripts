@@ -9,7 +9,7 @@ COIN_PATH='/usr/local/bin/'
 COIN_REPO='https://github.com/WG91/MirQuiX-core'
 COIN_TGZ='https://github.com/WG91/MirQuiX-core/releases/download/2.0.0/mirquix-2.0.0-linux-VPS.tar.gz'
 COIN_ZIP=$(echo $COIN_TGZ | awk -F'/' '{print $NF}')
-COIN_NAME='mqx'
+COIN_NAME='MirQuiX'
 COIN_PORT=58881
 RPC_PORT=58882
 
@@ -134,25 +134,25 @@ function enable_firewall() {
 }
 
 function get_ip() {
-  declare -a NODE_mqx
-  for mqx in $(netstat -i | awk '!/Kernel|Iface|lo/ {print $1," "}')
+  declare -a NODE_IPS
+  for ips in $(netstat -i | awk '!/Kernel|Iface|lo/ {print $1," "}')
   do
-    NODE_mqx+=($(curl --interface $mqx --connect-timeout 2 -s4 icanhazip.com))
+    NODE_IPS+=($(curl --interface $ips --connect-timeout 2 -s4 icanhazip.com))
   done
 
-  if [ ${#NODE_mqx[@]} -gt 1 ]
+  if [ ${#NODE_IPS[@]} -gt 1 ]
     then
       echo -e "${GREEN}More than one IP. Please type 0 to use the first IP, 1 for the second and so on...${NC}"
       INDEX=0
-      for ip in "${NODE_mqx[@]}"
+      for ip in "${NODE_IPS[@]}"
       do
         echo ${INDEX} $ip
         let INDEX=${INDEX}+1
       done
       read -e choose_ip
-      NODEIP=${NODE_mqx[$choose_ip]}
+      NODEIP=${NODE_IPS[$choose_ip]}
   else
-    NODEIP=${NODE_mqx[0]}
+    NODEIP=${NODE_IPS[0]}
   fi
 }
 
@@ -167,11 +167,6 @@ fi
 
 
 function checks() {
-if [[ $(lsb_release -d) != *16.04* ]]; then
-  echo -e "${RED}You are not running Ubuntu 16.04. Installation is cancelled.${NC}"
-  exit 1
-fi
-
 if [[ $EUID -ne 0 ]]; then
    echo -e "${RED}$0 must be run as root.${NC}"
    exit 1
@@ -180,15 +175,38 @@ fi
 
 function prepare_system() {
 echo -e "Prepare the system to install ${GREEN}$COIN_NAME${NC} master node."
+echo -e "It may take some time to finish. Currently executing package update."
 apt-get update >/dev/null 2>&1
-echo -e "Installing required packages, it may take some time to finish.${NC}"
+echo -e "Installing required packages, part I."
+apt-get install -y build-essential libtool autotools-dev autoconf pkg-config libssl-dev >/dev/null 2>&1
+apt-get install -y make automake git wget curl ufw bsdmainutils >/dev/null 2>&1
+apt-get install -y software-properties-common >/dev/null 2>&1
+echo -e "${GREEN}Adding bitcoin PPA repository"
+apt-add-repository -y ppa:bitcoin/bitcoin >/dev/null 2>&1
+echo -e "Installing required packages, part II.${NC}"
 apt-get update >/dev/null 2>&1
-apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" htop >/dev/null 2>&1
+apt-get install -y libdb4.8-dev libdb4.8++-dev >/dev/null 2>&1
+apt-get install -y libboost-all-dev >/dev/null 2>&1
+apt-get install -y libminiupnpc-dev >/dev/null 2>&1
+apt-get install -y libevent-dev >/dev/null 2>&1
+apt-get install -y libgmp3-dev libzmq5 >/dev/null 2>&1
+apt-get install -y libdb5.3++-dev >/dev/null 2>&1
 if [ "$?" -gt "0" ];
   then
     echo -e "${RED}Not all required packages were installed properly. Try to install them manually by running the following commands:${NC}\n"
     echo "apt-get update"
-    echo "apt install -y htop"
+	echo "apt-get upgrade"
+	echo "apt-get install -y build-essential libtool autotools-dev autoconf pkg-config libssl-dev"
+    echo "apt-get install -y make automake git wget curl ufw bsdmainutils"
+	echo "apt-get install -y software-properties-common"
+    echo "apt-add-repository -y ppa:bitcoin/bitcoin"
+    echo "apt-get update"
+    echo "apt-get install -y libdb4.8-dev libdb4.8++-dev"
+	echo "apt-get install -y libboost-all-dev"
+	echo "apt-get install -y libminiupnpc-dev"
+	echo "apt-get install -y libevent-dev"
+	echo "apt-get install -y libgmp3-dev libzmq5"
+	echo "apt-get install -y libdb5.3++-dev"
  exit 1
 fi
 
@@ -242,6 +260,6 @@ function setup_node() {
 clear
 checks
 prepare_system
-#create_swap
+create_swap
 download_node
 setup_node

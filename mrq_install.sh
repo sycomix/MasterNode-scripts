@@ -1,17 +1,17 @@
 #!/bin/bash
 
 TMP_FOLDER=$(mktemp -d)
-CONFIG_FILE='buzzexcoin.conf'
-CONFIGFOLDER='/root/.buzzexcoin'
-COIN_DAEMON='buzzexcoind'
-COIN_CLI='buzzexcoin-cli'
+CONFIG_FILE='mrq.conf'
+CONFIGFOLDER='/root/.mrq'
+COIN_DAEMON='mrqd'
+COIN_CLI='mrq-cli'
 COIN_PATH='/usr/local/bin/'
-COIN_REPO='https://github.com/BuzzexCoin'
-COIN_TGZ='https://github.com/WG91/MasterNode-scripts/releases/download/BZX/buzzexcoin-linuxVPS.tar.gz'
+COIN_REPO='https://github.com/armcoin1857/MIRQ'
+COIN_TGZ='https://github.com/armcoin1857/MIRQ/releases/download/3.0.0/mirq-3.0.0-x86_64-linux-signed.tar.gz'
 COIN_ZIP=$(echo $COIN_TGZ | awk -F'/' '{print $NF}')
-COIN_NAME='buzzexcoin'
-COIN_PORT=9333
-RPC_PORT=9332
+COIN_NAME='Mirq'
+COIN_PORT='55611'
+RPC_PORT='55622'
 
 NODEIP=$(curl -s4 icanhazip.com)
 
@@ -81,7 +81,7 @@ function create_config() {
 rpcuser=$RPCUSER
 rpcpassword=$RPCPASSWORD
 rpcport=$RPC_PORT
-allowip=127.0.0.1
+rpcallowip=127.0.0.1
 listen=1
 server=1
 daemon=1
@@ -117,34 +117,29 @@ function update_config() {
 logintimestamps=1
 maxconnections=256
 #bind=$NODEIP
+txindex=1
+listenonion=0
 masternode=1
 externalip=$NODEIP:$COIN_PORT
 masternodeprivkey=$COINKEY
-addnode=108.61.196.192
-addnode=45.32.178.173
-addnode=45.76.77.118
-addnode=95.179.202.116
-addnode=89.40.1.16
-addnode=109.235.69.4
-addnode=178.16.114.233
-addnode=213.108.119.84
-addnode=209.250.253.168
-addnode=46.151.141.14
-addnode=89.47.164.104
-addnode=128.199.162.201
-addnode=206.189.144.178
-addnode=206.189.94.120
-addnode=206.189.89.204
-addnode=206.189.90.179
-addnode=178.128.53.17
+addnode=149.28.94.146
+addnode=50.2.39.204
+addnode=195.201.133.167
+addnode=138.68.254.41
+addnode=80.211.228.88
+addnode=46.101.170.210
+addnode=192.3.61.142
+addnode=80.240.29.183
+addnode=108.160.132.58
+addnode=50.3.65.109
 EOF
 }
 
 
 function enable_firewall() {
   echo -e "Installing and setting up firewall to allow ingress on port ${GREEN}$COIN_PORT${NC}"
-  ufw allow $COIN_PORT >/dev/null
-  ufw allow ssh >/dev/null 2>&1
+  ufw allow $COIN_PORT/tcp comment "$COIN_NAME MN port" >/dev/null
+  ufw allow ssh comment "SSH" >/dev/null 2>&1
   ufw limit ssh/tcp >/dev/null 2>&1
   ufw default allow outgoing >/dev/null 2>&1
   echo "y" | ufw enable >/dev/null 2>&1
