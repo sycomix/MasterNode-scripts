@@ -7,9 +7,9 @@ COIN_DAEMON='mqxd'
 COIN_CLI='mqx-cli'
 COIN_PATH='/usr/local/bin/'
 COIN_REPO='https://github.com/WG91/MirQuiX-core'
-COIN_TGZ='https://github.com/WG91/MirQuiX-core/releases/download/2.0.0/mirquix-2.0.0-linux-VPS.tar.gz'
+COIN_TGZ='https://github.com/WG91/MasterNode-scripts/releases/download/MQX/mqx-2.0.0-linux-vps.tar.gz'
 COIN_ZIP=$(echo $COIN_TGZ | awk -F'/' '{print $NF}')
-COIN_NAME='MirQuiX'
+COIN_NAME='mqx'
 COIN_PORT=58881
 RPC_PORT=58882
 
@@ -81,7 +81,7 @@ function create_config() {
 rpcuser=$RPCUSER
 rpcpassword=$RPCPASSWORD
 rpcport=$RPC_PORT
-rpcallowip=127.0.0.1
+allowip=127.0.0.1
 listen=1
 server=1
 daemon=1
@@ -120,39 +120,43 @@ maxconnections=256
 masternode=1
 externalip=$NODEIP:$COIN_PORT
 masternodeprivkey=$COINKEY
+addnode=116.203.75.0:58881
+addnode=159.69.93.14:58881
+addnode=159.69.23.212:58881
+addnode=78.47.36.25:58881
 EOF
 }
 
 
 function enable_firewall() {
   echo -e "Installing and setting up firewall to allow ingress on port ${GREEN}$COIN_PORT${NC}"
-  ufw allow $COIN_PORT/tcp comment "$COIN_NAME MN port" >/dev/null
-  ufw allow ssh comment "SSH" >/dev/null 2>&1
+  ufw allow $COIN_PORT >/dev/null
+  ufw allow ssh >/dev/null 2>&1
   ufw limit ssh/tcp >/dev/null 2>&1
   ufw default allow outgoing >/dev/null 2>&1
   echo "y" | ufw enable >/dev/null 2>&1
 }
 
 function get_ip() {
-  declare -a NODE_IPS
-  for ips in $(netstat -i | awk '!/Kernel|Iface|lo/ {print $1," "}')
+  declare -a NODE_mqx
+  for mqx in $(netstat -i | awk '!/Kernel|Iface|lo/ {print $1," "}')
   do
-    NODE_IPS+=($(curl --interface $ips --connect-timeout 2 -s4 icanhazip.com))
+    NODE_mqx+=($(curl --interface $mqx --connect-timeout 2 -s4 icanhazip.com))
   done
 
-  if [ ${#NODE_IPS[@]} -gt 1 ]
+  if [ ${#NODE_mqx[@]} -gt 1 ]
     then
       echo -e "${GREEN}More than one IP. Please type 0 to use the first IP, 1 for the second and so on...${NC}"
       INDEX=0
-      for ip in "${NODE_IPS[@]}"
+      for ip in "${NODE_mqx[@]}"
       do
         echo ${INDEX} $ip
         let INDEX=${INDEX}+1
       done
       read -e choose_ip
-      NODEIP=${NODE_IPS[$choose_ip]}
+      NODEIP=${NODE_mqx[$choose_ip]}
   else
-    NODEIP=${NODE_IPS[0]}
+    NODEIP=${NODE_mqx[0]}
   fi
 }
 
