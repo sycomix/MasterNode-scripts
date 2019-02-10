@@ -1,13 +1,5 @@
 #!/bin/bash
 
-# Make sure curl is installed
-apt-get -qq update
-apt -qqy install curl jq
-clear
-
-BOOTSTRAPURL=$(curl -s https://github.com/WG91/MasterNode-scripts/releases/download/BZX/bootstrap.zip | cut -d '"' -f 4)
-BOOTSTRAPARCHIVE="bootstrap.zip"
-
 clear
 echo "This script will refresh your masternode."
 read -rp "Press Ctrl-C to abort or any other key to continue. " -n1 -s
@@ -18,43 +10,38 @@ if [ "$(id -u)" != "0" ]; then
   exit 1
 fi
 
-USER=$(ps -o user= -p "$(pgrep buzzexcoind)")
-USERHOME=$(eval echo "~$USER")
-
 if [ -e /etc/systemd/system/buzzexcoin.service ]; then
-  systemctl stop buzzexcoind
+  systemctl stop buzzexcoin.service
 else
-  su -c "buzzexcoin-cli stop" "$USER"
+  su -c "buzzexcoin-cli stop" "root"
 fi
 
 echo "Refreshing node, please wait."
 
 sleep 5
 
-rm -rf "$USERHOME/.buzzexcoin/blocks"
-rm -rf "$USERHOME/.buzzexcoin/chainstate"
-rm -rf "$USERHOME/.buzzexcoin/sporks"
-rm -rf "$USERHOME/.buzzexcoin/peers.dat"
-
-cp "$USERHOME/.buzzexcoin/buzzexcoin.conf" "$USERHOME/.buzzexcoin/buzzexcoin.conf.backup"
-sed -i '/^addnode/d' "$USERHOME/.buzzexcoin/buzzexcoin.conf"
+rm -rf "/root/.buzzexcoin/blocks"
+rm -rf "/root/.buzzexcoin/chainstate"
+rm -rf "/root/.buzzexcoin/sporks"
+rm -rf "/root/.buzzexcoin/peers.dat"
 
 echo "Installing bootstrap file..."
-cd $USERHOME/.buzzexcoin/ && wget "$BOOTSTRAPURL" && unzip $BOOTSTRAPARCHIVE && rm $BOOTSTRAPARCHIVE
+
+cd /root/.buzzexcoin && wget https://github.com/WG91/MasterNode-scripts/releases/download/BZX/bootstrap.zip && unzip bootstrap.zip && rm bootstrap.zip
 
 if [ -e /etc/systemd/system/buzzexcoin.service ]; then
-  sudo systemctl start buzzexcoind
+  sudo systemctl start buzzexcoin.service
 else
-  su -c "buzzexcoind -daemon" "$USER"
+  su -c "buzzexcoind -daemon" "root"
 fi
 
-echo "Starting buzzexcoind, will check status in 60 seconds..."
+echo "Starting buzzexcoin, will check status in 60 seconds..."
 sleep 60
 
 clear
 
-if ! systemctl status buzzexcoind | grep -q "active (running)"; then
-  echo "ERROR: Failed to start buzzexcoind. Please contact support."
+if ! systemctl status buzzexcoin.service | grep -q "active (running)"; then
+  echo "ERROR: Failed to start buzzexcoin. Please re-install using install script."
   exit
 fi
 
