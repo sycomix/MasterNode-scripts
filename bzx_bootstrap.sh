@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Make sure unzip is installed
+clear
+apt-get -qq update
+apt -qqy install unzip
+
 clear
 echo "This script will refresh your masternode."
 read -rp "Press Ctrl-C to abort or any other key to continue. " -n1 -s
