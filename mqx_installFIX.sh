@@ -73,13 +73,6 @@ EOF
 }
 
 
-function unpack_bootstrap() {
- wget https://www.dropbox.com/s/hpkb6lued56o361/bootstrap2328.zip?dl=0 -O /root/.mqx/bootstrap2328.zip >/dev/null 2>&1
- unzip /root/.mqx/bootstrap2328.zip >/dev/null 2>&1
- rm -rf /root/.mqx/bootstrap2328.zip >/dev/null 2>&1
-}
-
-
 function create_config() {
   mkdir $CONFIGFOLDER >/dev/null 2>&1
   RPCUSER=$(tr -cd '[:alnum:]' < /dev/urandom | fold -w10 | head -n1)
@@ -291,4 +284,4 @@ prepare_system
 create_swap
 download_node
 setup_node
-unpack_bootstrap
+
