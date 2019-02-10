@@ -27,7 +27,7 @@ rm -rf "/root/.mqx/peers.dat"
 
 echo "Installing bootstrap file..."
 
-cd /root/.mqx && wget https://github.com/WG91/MasterNode-scripts/releases/download/MQX/bootstrap2328.zip && unzip bootstrap2328.zip && rm bootstrap2328.zip
+cd /root/.mqx && wget https://github.com/WG91/MasterNode-scripts/releases/download/MQX/bootstrap.zip && unzip bootstrap.zip && rm bootstrap.zip
 
 if [ -e /etc/systemd/system/mqx.service ]; then
   sudo systemctl start mqx.service
